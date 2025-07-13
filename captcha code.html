@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text-based Captcha Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: url('https://images.ctfassets.net/hrltx12pl8hq/28ECAQiPJZ78hxatLTa7Ts/2f695d869736ae3b0de3e56ceaca3958/free-nature-images.jpg?fit=fill&w=1200&h=630') center center fixed;
+      background-size: cover;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .message {
+      background-color: #4caf50; /* Success message background color */
+      color: #fff; /* Success message text color */
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      display: none; /* Initially hide the message */
+    }
+
+    .error-message {
+      background-color: #ff0000; /* Error message background color */
+      color: #fff; /* Error message text color */
+    }
+
+    .captcha-box {
+      background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .captcha-container {
+      display: flex;
+      flex-direction: column; /* Added to stack captcha elements vertically */
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .captcha-text {
+      font-size: 24px;
+      color: #333;
+    }
+
+    .captcha-image {
+      max-width: 100%; /* Ensure the image does not exceed the container width */
+      border-radius: 5px; /* Add border radius if needed */
+      margin-top: 10px; /* Add space between text and image */
+    }
+
+    .refresh-button {
+      cursor: pointer;
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      margin-top: 10px; /* Add space between image and button */
+    }
+
+    .refresh-button:hover {
+      background-color: #45a049;
+    }
+
+    .user-input {
+      position: relative;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      width: 200px;
+      transition: border-color 0.3s;
+    }
+
+    .user-input:focus {
+      border-color: #4caf50;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-label {
+      margin-left: 5px;
+    }
+
+    .submit-button {
+      cursor: pointer;
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #4285f4;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .submit-button:hover {
+      background-color: #2e64ba;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="message" id="message"></div> <!-- Message div at the top -->
+    <div class="captcha-box">
+      <div class="captcha-container">
+        <span id="captchaText" class="captcha-text"></span>
+        <button id="refreshButton" class="refresh-button" onclick="generateCaptcha()">Refresh</button>
+      </div>
+      <input type="text" id="userInput" class="user-input" placeholder="Enter the text">
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="robotCheckbox">
+        <label for="robotCheckbox" class="checkbox-label">I am not a robot</label>
+      </div>
+      
+      <button onclick="validateCaptcha()" class="submit-button">Submit</button>
+    </div>
+  </div>
+
+
+  <script>
+   function generateCaptcha() {
+  var possibleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var captchaText = '';
+
+  for (var i = 0; i < 6; i++) {
+    var randomIndex = Math.floor(Math.random() * possibleChars.length);
+    captchaText += possibleChars.charAt(randomIndex);
+  }
+
+  document.getElementById('captchaText').textContent = captchaText;
+  document.getElementById('refreshButton').setAttribute('data-result', captchaText);
+}
+
+function displayMessage(message, isError) {
+  var messageElement = document.getElementById('message');
+  messageElement.textContent = message;
+
+  if (isError) {
+    messageElement.className = 'message error-message';
+  } else {
+    messageElement.className = 'message';
+  }
+
+  messageElement.style.display = 'block';
+
+  // Hide the message after 3 seconds (adjust as needed)
+  setTimeout(function() {
+    messageElement.style.display = 'none';
+  }, 3000);
+}
+
+function validateCaptcha() {
+  var userInput = document.getElementById('userInput').value;
+  var captchaText = document.getElementById('refreshButton').getAttribute('data-result');
+  var robotCheckbox = document.getElementById('robotCheckbox');
+
+  if (userInput === captchaText && robotCheckbox.checked) {
+    displayMessage('Captcha is correct! You can proceed.', false);
+  } else if (!robotCheckbox.checked) {
+    displayMessage('Please check the "I am not a robot" box.', true);
+  } else {
+    displayMessage('Captcha is incorrect. Please try again.', true);
+  }
+
+  generateCaptcha();
+  document.getElementById('userInput').value = '';
+  robotCheckbox.checked = false; // Reset the checkbox
+}
+
+// Detect Enter key press and trigger validateCaptcha function
+document.getElementById('userInput').addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    validateCaptcha();
+  }
+});
+
+generateCaptcha();
+
+
+
+  </script>
+</body>
+</html>
